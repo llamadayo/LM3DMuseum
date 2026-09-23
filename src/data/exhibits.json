@@ -15,5 +15,22 @@
     "creator": "LM",
     "source": "LM",
     "license": "© 2026 LM，保留所有權利"
+  },
+  {
+    "id": "violet-marksman",
+    "title": "Violet Marksman",
+    "subtitle": "VIOLET MARKSMAN",
+    "order": 2,
+    "summary": "灰紫色長髮、水手風制服與射手裝備，組成鮮明的角色造型。",
+    "description": [
+      "Violet Marksman 穿著水手風上衣與深色百褶裙，灰紫色長髮向後束起。轉動模型，細看服裝層次、隨身裝備與材質細節。"
+    ],
+    "model": "models/Violet_Marksman_repaired.glb",
+    "poster": "posters/violet-marksman.webp",
+    "alt": "灰紫色長馬尾、白色水手風上衣與深色百褶裙的三維角色，身旁帶有射手裝備",
+    "cameraOrbit": "25deg 75deg 105%",
+    "creator": "LM",
+    "source": "LM",
+    "license": "© 2026 LM，保留所有權利"
   }
 ]
