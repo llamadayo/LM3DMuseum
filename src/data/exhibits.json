@@ -32,5 +32,22 @@
     "creator": "LM",
     "source": "LM",
     "license": "© 2026 LM，保留所有權利"
+  },
+  {
+    "id": "crimson-ribbon-school",
+    "title": "Crimson Ribbon School",
+    "subtitle": "CRIMSON RIBBON SCHOOL",
+    "order": 3,
+    "summary": "白色長髮與紅色蝴蝶結，搭配黑色水手風制服。",
+    "description": [
+      "白色長髮搭配紅黑髮飾，胸前的紅色蝴蝶結呼應裙裝與袖口的細節。轉動模型，細看制服、配件與材質。"
+    ],
+    "model": "models/Meshy_AI_Crimson_Ribbon_School_0923043550_texture.glb",
+    "poster": "posters/crimson-ribbon-school.webp",
+    "alt": "白色長髮、紅色蝴蝶結與黑色水手風百褶裙的三維角色",
+    "cameraOrbit": "25deg 75deg 105%",
+    "creator": "LM",
+    "source": "LM",
+    "license": "© 2026 LM，保留所有權利"
   }
 ]

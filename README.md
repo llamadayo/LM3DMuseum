@@ -102,7 +102,7 @@ BASE_PATH=/LM3DMuseum/ npm run preview
 
 ## 授權
 
-網站程式碼與文件採用 [MIT License](LICENSE)，著作權標示為 LM。`public/models/` 的 3D 模型、`public/posters/` 的封面圖，以及 `src/data/exhibits.json` 中的作品內容不在 MIT 授權範圍內；各展品以自己的授權欄位為準。目前的 AstraFixDemo 與 Violet Marksman 展品均標示為「© 2026 LM，保留所有權利」。新增展品時，請確認其素材使用權並填寫正確的作者與授權。
+網站程式碼與文件採用 [MIT License](LICENSE)，著作權標示為 LM。`public/models/` 的 3D 模型、`public/posters/` 的封面圖，以及 `src/data/exhibits.json` 中的作品內容不在 MIT 授權範圍內；各展品以自己的授權欄位為準。目前展品均標示為「© 2026 LM，保留所有權利」。新增展品時，請確認其素材使用權並填寫正確的作者與授權。
 
 第三方套件、字型及 `public/decoders/` 中的解碼器仍適用各自的上游授權。
 
