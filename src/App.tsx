@@ -186,12 +186,6 @@ function ExhibitPage({ exhibit }: { exhibit: Exhibit }) {
               查看模型來源 <ArrowUpRight size={15} />
             </a>
           ) : null}
-          {exhibit.sample ? (
-            <p className="sample-note">
-              示範展品 · 來自 Khronos glTF 範例收藏，
-              <br />非 LM 原創作品。展品名稱及文字為展示用策展文案。
-            </p>
-          ) : null}
         </div>
       </div>
       <nav className="exhibit-pagination" aria-label="展品順序">

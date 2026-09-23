@@ -706,12 +706,6 @@ main:focus {
 .source-link:hover {
   text-decoration: underline;
 }
-.sample-note {
-  font-size: 10px;
-  line-height: 1.8;
-  color: var(--muted);
-  margin-top: 18px;
-}
 .exhibit-pagination {
   display: flex;
   justify-content: space-between;
@@ -1091,9 +1085,6 @@ main:focus {
   }
   .source-link {
     font-size: 12px;
-  }
-  .sample-note {
-    font-size: 11px;
   }
   .exhibit-pagination {
     margin-top: 30px;

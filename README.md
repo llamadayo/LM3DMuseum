@@ -22,7 +22,7 @@ npm run preview
 
 1. 原始檔放在 `originals/`（已排除版本控制），不要放到 `public/`。
 2. 展示用 GLB 放在 `public/models/`，封面放在 `public/posters/`。
-3. 修改 `src/data/exhibits.json`，移除示範展品，新增自己的項目。ID 用穩定的英文 slug，已發布後盡量不改，以免破壞分享連結。
+3. 修改 `src/data/exhibits.json`，新增自己的項目。ID 用穩定的英文 slug，已發布後盡量不改，以免破壞分享連結。
 4. `npm run build` 會檢查展品資料與 GLB 檔案；預覽確認後提交並推送。
 
 ```json
@@ -40,12 +40,11 @@ npm run preview
   "creator": "你的名字",
   "source": "https://your-portfolio.example.com/",
   "license": "© 2026 作者，保留所有權利",
-  "licenseUrl": "https://your-portfolio.example.com/terms",
-  "sample": false
+  "licenseUrl": "https://your-portfolio.example.com/terms"
 }
 ```
 
-`cameraOrbit`、`cameraTarget`、`fieldOfView` 為選填。預設置中並依模型尺寸自動取景。名稱與描述請填真實資料；示範文案不代表作品史實。
+`cameraOrbit`、`cameraTarget`、`fieldOfView` 為選填。預設置中並依模型尺寸自動取景。名稱與描述請填真實資料。
 `source` 可填 HTTPS 來源網址或文字；若沒有授權網址，`licenseUrl` 可省略，頁面會以文字顯示授權資訊。
 
 模型與封面也可以使用完整 HTTPS URL；外部模型主機必須允許網站來源的 CORS，GLB 建議回傳 `model/gltf-binary`。請先驗證可直接讀取，不要使用雲端硬碟的分享預覽頁 URL。所有本機資產路徑相對於 `public/`，不要把 GitHub 儲存庫名稱寫進清單。
@@ -64,7 +63,7 @@ blender --background --python scripts/render-posters.py
 blender --background --python scripts/render-posters.py -- --id astrafixdemo
 ```
 
-也可在 Blender 自行調整燈光與構圖輸出。示範封面的燈光與網頁即時渲染略有差異；幾何皆來自對應模型。
+也可在 Blender 自行調整燈光與構圖輸出。封面的燈光與網頁即時渲染可能略有差異；幾何皆來自對應模型。
 
 ### 模型優化
 
@@ -90,9 +89,11 @@ BASE_PATH=/LM3DMuseum/ npm run preview
 
 展品網址為 `https://<帳號>.github.io/LM3DMuseum/#/exhibit/<id>`。Hash 路由重新整理不依賴伺服器 rewrite。
 
-## 示範素材與授權
+## 授權
 
-**內附作品不是 LM 原創作品。** 詳細來源、作者、授權與使用限制見 [ATTRIBUTIONS.md](ATTRIBUTIONS.md) 及 `public/licenses/`。Damaged Helmet 的原始作者標示非商業授權；將網站用於商業推廣前請換成自己的作品或確認另有適用授權。
+網站程式碼與文件採用 [MIT License](LICENSE)，著作權標示為 LM。`public/models/` 的 3D 模型、`public/posters/` 的封面圖，以及 `src/data/exhibits.json` 中的作品內容不在 MIT 授權範圍內；各展品以自己的授權欄位為準。目前保留的 AstraFixDemo 展品標示為「© 2026 LM，保留所有權利」。新增展品時，請確認其素材使用權並填寫正確的作者與授權。
+
+第三方套件、字型及 `public/decoders/` 中的解碼器仍適用各自的上游授權。
 
 ## 驗收範圍
 

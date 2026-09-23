@@ -2,6 +2,7 @@
   "name": "lm-3d-museum",
   "private": true,
   "version": "1.0.0",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "predev": "node scripts/prepare-decoders.mjs",
@@ -10,7 +11,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "check:assets": "node scripts/check-assets.mjs",
-    "format": "prettier --write src scripts/*.mjs vite.config.ts index.html README.md ATTRIBUTIONS.md .github/workflows/deploy.yml"
+    "format": "prettier --write src scripts/*.mjs vite.config.ts index.html README.md .github/workflows/deploy.yml"
   },
   "dependencies": {
     "@google/model-viewer": "4.3.1",

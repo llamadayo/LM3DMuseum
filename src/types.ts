@@ -15,5 +15,4 @@ export interface Exhibit {
   source: string;
   license: string;
   licenseUrl?: string;
-  sample: boolean;
 }

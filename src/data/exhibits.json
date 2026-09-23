@@ -14,67 +14,6 @@
     "cameraOrbit": "25deg 75deg 105%",
     "creator": "LM",
     "source": "LM",
-    "license": "LM",
-    "sample": false
-  },
-  {
-    "id": "damaged-helmet",
-    "title": "飛行之後",
-    "subtitle": "DAMAGED HELMET",
-    "order": 2,
-    "summary": "在磨損的表面，尋找光留下的痕跡。",
-    "description": [
-      "一道刮痕，一處磨損，都讓平滑的輪廓多了一層表情。試著緩緩轉動這頂虛構的飛行頭盔，看看光線如何掠過金屬、玻璃與塗層。",
-      "靠近一點，再換個角度。原本不經意的細節，也許就是這件作品最值得停留的地方。"
-    ],
-    "model": "models/DamagedHelmet.glb",
-    "poster": "posters/damaged-helmet.webp",
-    "alt": "帶有綠色塗裝、磨損金屬與深色面罩的虛構飛行頭盔",
-    "cameraOrbit": "25deg 75deg 105%",
-    "creator": "theblueturtle_ · glTF 轉製 ctxwing",
-    "source": "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/DamagedHelmet",
-    "license": "原作 CC BY-NC 4.0 · 轉製 CC BY 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/",
-    "sample": true
-  },
-  {
-    "id": "antique-camera",
-    "title": "凝視時光",
-    "subtitle": "ANTIQUE CAMERA",
-    "order": 3,
-    "summary": "從鏡頭到支架，讀一件物品的構造。",
-    "description": [
-      "相機把時間留在影像裡，而相機本身，也是一段設計的記憶。從鏡頭、皮腔到細長的支架，觀察每個部件如何一起構成它的姿態。",
-      "旋轉到側面，看看折疊的層次；再退遠一些，讓整個輪廓回到視野之中。"
-    ],
-    "model": "models/AntiqueCamera.glb",
-    "poster": "posters/antique-camera.webp",
-    "alt": "架在三腳架上的古董皮腔相機",
-    "cameraOrbit": "25deg 75deg 105%",
-    "creator": "Maximillan Kamps / UX3D",
-    "source": "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/AntiqueCamera",
-    "license": "CC0 1.0 · UX3D 標誌保留原有權利",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "sample": true
-  },
-  {
-    "id": "duck",
-    "title": "小小的同伴",
-    "subtitle": "THE COLLADA DUCK",
-    "order": 4,
-    "summary": "簡單的形狀，也有讓人停下來的力量。",
-    "description": [
-      "圓潤的輪廓、明亮的黃色，一隻熟悉的小鴨，在數位空間裡重新與我們見面。不需要複雜的結構，也能表達鮮明的個性。",
-      "這是來自 glTF 範例收藏的經典測試模型。用不同的角度看看它，也重新發現日常物件的趣味。"
-    ],
-    "model": "models/Duck.glb",
-    "poster": "posters/duck.webp",
-    "alt": "橘色嘴巴、黃色身體的圓潤玩具小鴨",
-    "cameraOrbit": "25deg 75deg 105%",
-    "creator": "Sony Computer Entertainment",
-    "source": "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/Duck",
-    "license": "SCEA Shared Source License 1.0",
-    "licenseUrl": "https://github.com/KhronosGroup/glTF-Sample-Assets/blob/main/LICENSES/SCEA.txt",
-    "sample": true
+    "license": "© 2026 LM，保留所有權利"
   }
 ]
