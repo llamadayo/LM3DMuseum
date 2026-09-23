@@ -158,22 +158,34 @@ function ExhibitPage({ exhibit }: { exhibit: Exhibit }) {
               <dd>glTF 2.0 / GLB</dd>
             </div>
             <div>
-              <dt>授權條款</dt>
+              <dt>授權</dt>
               <dd>
-                <a href={exhibit.licenseUrl} target="_blank" rel="noreferrer">
-                  {exhibit.license} <ArrowUpRight size={13} />
-                </a>
+                {exhibit.licenseUrl ? (
+                  <a href={exhibit.licenseUrl} target="_blank" rel="noreferrer">
+                    {exhibit.license} <ArrowUpRight size={13} />
+                  </a>
+                ) : (
+                  exhibit.license
+                )}
               </dd>
             </div>
+            {!exhibit.source.startsWith("https://") ? (
+              <div>
+                <dt>模型來源</dt>
+                <dd>{exhibit.source}</dd>
+              </div>
+            ) : null}
           </dl>
-          <a
-            className="source-link"
-            href={exhibit.source}
-            target="_blank"
-            rel="noreferrer"
-          >
-            查看模型來源 <ArrowUpRight size={15} />
-          </a>
+          {exhibit.source.startsWith("https://") ? (
+            <a
+              className="source-link"
+              href={exhibit.source}
+              target="_blank"
+              rel="noreferrer"
+            >
+              查看模型來源 <ArrowUpRight size={15} />
+            </a>
+          ) : null}
           {exhibit.sample ? (
             <p className="sample-note">
               示範展品 · 來自 Khronos glTF 範例收藏，

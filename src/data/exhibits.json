@@ -1,9 +1,27 @@
 [
   {
+    "id": "astrafixdemo",
+    "title": "AstraFixDemo",
+    "subtitle": "ASTRAFIXDEMO",
+    "order": 1,
+    "summary": "從服裝輪廓到肩包細節，走近這件角色作品。",
+    "description": [
+      "AstraFixDemo 以三維角色呈現服裝、材質與配件。轉動模型，觀察不同角度下的造型與表面細節。"
+    ],
+    "model": "models/Wheatfield_Letter_Bea_repaired.glb",
+    "poster": "posters/astrafixdemo.webp",
+    "alt": "穿著裙裝、帶著皮革肩包的三維角色",
+    "cameraOrbit": "25deg 75deg 105%",
+    "creator": "LM",
+    "source": "LM",
+    "license": "LM",
+    "sample": false
+  },
+  {
     "id": "damaged-helmet",
     "title": "飛行之後",
     "subtitle": "DAMAGED HELMET",
-    "order": 1,
+    "order": 2,
     "summary": "在磨損的表面，尋找光留下的痕跡。",
     "description": [
       "一道刮痕，一處磨損，都讓平滑的輪廓多了一層表情。試著緩緩轉動這頂虛構的飛行頭盔，看看光線如何掠過金屬、玻璃與塗層。",
@@ -23,7 +41,7 @@
     "id": "antique-camera",
     "title": "凝視時光",
     "subtitle": "ANTIQUE CAMERA",
-    "order": 2,
+    "order": 3,
     "summary": "從鏡頭到支架，讀一件物品的構造。",
     "description": [
       "相機把時間留在影像裡，而相機本身，也是一段設計的記憶。從鏡頭、皮腔到細長的支架，觀察每個部件如何一起構成它的姿態。",
@@ -43,7 +61,7 @@
     "id": "duck",
     "title": "小小的同伴",
     "subtitle": "THE COLLADA DUCK",
-    "order": 3,
+    "order": 4,
     "summary": "簡單的形狀，也有讓人停下來的力量。",
     "description": [
       "圓潤的輪廓、明亮的黃色，一隻熟悉的小鴨，在數位空間裡重新與我們見面。不需要複雜的結構，也能表達鮮明的個性。",

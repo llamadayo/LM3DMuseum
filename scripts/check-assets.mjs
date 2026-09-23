@@ -14,7 +14,6 @@ for (const item of entries) {
     "creator",
     "source",
     "license",
-    "licenseUrl",
   ])
     if (!item[key]) throw new Error(`${item.id}: missing ${key}`);
   if (

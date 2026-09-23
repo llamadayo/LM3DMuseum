@@ -46,6 +46,7 @@ npm run preview
 ```
 
 `cameraOrbit`、`cameraTarget`、`fieldOfView` 為選填。預設置中並依模型尺寸自動取景。名稱與描述請填真實資料；示範文案不代表作品史實。
+`source` 可填 HTTPS 來源網址或文字；若沒有授權網址，`licenseUrl` 可省略，頁面會以文字顯示授權資訊。
 
 模型與封面也可以使用完整 HTTPS URL；外部模型主機必須允許網站來源的 CORS，GLB 建議回傳 `model/gltf-binary`。請先驗證可直接讀取，不要使用雲端硬碟的分享預覽頁 URL。所有本機資產路徑相對於 `public/`，不要把 GitHub 儲存庫名稱寫進清單。
 
@@ -57,7 +58,13 @@ npm run preview
 blender --background --python scripts/render-posters.py
 ```
 
-會覆寫清單指定的本機封面。也可在 Blender 自行調整燈光與構圖輸出。示範封面的燈光與網頁即時渲染略有差異；幾何皆來自對應模型。
+上述指令會覆寫清單指定的全部本機封面。只產生單件封面可執行：
+
+```sh
+blender --background --python scripts/render-posters.py -- --id astrafixdemo
+```
+
+也可在 Blender 自行調整燈光與構圖輸出。示範封面的燈光與網頁即時渲染略有差異；幾何皆來自對應模型。
 
 ### 模型優化
 

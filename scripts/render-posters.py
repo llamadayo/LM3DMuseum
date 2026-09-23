@@ -4,11 +4,19 @@ Renders real GLB assets without modifying source models. Requires Blender 4+.
 import bpy
 import math
 import json
+import sys
 from pathlib import Path
 from mathutils import Vector
 
 root = Path(__file__).resolve().parent.parent
 exhibits = json.loads((root / 'src/data/exhibits.json').read_text())
+args = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
+if args:
+    if len(args) != 2 or args[0] != '--id':
+        raise SystemExit('Usage: blender --background --python scripts/render-posters.py -- --id EXHIBIT_ID')
+    exhibits = [item for item in exhibits if item['id'] == args[1]]
+    if not exhibits:
+        raise SystemExit(f'Unknown exhibit ID: {args[1]}')
 
 for item in exhibits:
     if item['model'].startswith('https://'):
