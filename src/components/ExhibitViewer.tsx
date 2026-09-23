@@ -11,8 +11,14 @@ import {
 import type { ModelViewerElement } from "@google/model-viewer";
 import { assetUrl } from "../lib";
 import type { Exhibit } from "../types";
+import type { ToonController, Viewpoint } from "./viewerTypes";
 
 export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
+  const [mode, setMode] = useState<"original" | "toon">("original");
+  const toon = useRef<ToonController | null>(null);
+  const viewpoint = useRef<Viewpoint | null>(null);
+  const initialViewpoint = useRef<Viewpoint | null>(null);
+  const currentExhibit = useRef(exhibit);
   const host = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const model = useRef<ModelViewerElement | null>(null);
@@ -30,6 +36,13 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
   const [slow, setSlow] = useState(false);
 
   useEffect(() => {
+    if (currentExhibit.current !== exhibit) {
+      currentExhibit.current = exhibit;
+      viewpoint.current = null;
+      initialViewpoint.current = null;
+      setMode("original");
+      if (mode !== "original") return;
+    }
     let active = true;
     let settled = false;
     let lastProgress = 0;
@@ -43,6 +56,14 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
     const loaded = () => {
       if (active && !settled) {
         settled = true;
+        if (element && !initialViewpoint.current && element.getCameraOrbit) {
+          const orbit = element.getCameraOrbit();
+          initialViewpoint.current = {
+            ...orbit,
+            target: element.getCameraTarget(),
+            fov: element.getFieldOfView(),
+          };
+        }
         setStatus("ready");
         clearTimeout(timer);
         clearTimeout(slowTimer);
@@ -52,6 +73,8 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
       if (active) {
         settled = true;
         setStatus("error");
+        toon.current?.dispose();
+        toon.current = null;
         clearTimeout(timer);
         clearTimeout(slowTimer);
       }
@@ -71,45 +94,76 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
     };
     timer = setTimeout(failed, 120000);
     // Loading this module only on the exhibit route keeps Three.js off the entrance page.
-    import("@google/model-viewer")
-      .then(({ ModelViewerElement }) => {
-        if (!active || !host.current) return;
-        ModelViewerElement.dracoDecoderLocation = assetUrl("decoders/draco/");
-        ModelViewerElement.ktx2TranscoderLocation = assetUrl("decoders/basis/");
-        ModelViewerElement.meshoptDecoderLocation = assetUrl(
-          "decoders/meshopt_decoder.js",
-        );
-        ModelViewerElement.modelCacheSize = 0;
-        element = document.createElement("model-viewer") as ModelViewerElement;
-        const attributes = {
-          alt: exhibit.alt,
-          "camera-controls": "",
-          "touch-action": "pan-y",
-          "interaction-prompt": "none",
-          "camera-orbit": exhibit.cameraOrbit || "25deg 75deg 105%",
-          "camera-target": exhibit.cameraTarget || "auto auto auto",
-          "field-of-view": exhibit.fieldOfView || "30deg",
-          "shadow-intensity": "0.8",
-          "shadow-softness": "1",
-          exposure: "1",
-          "environment-image": "neutral",
-          "tone-mapping": "aces",
-          loading: "eager",
-          "aria-label": `${exhibit.title}：拖曳旋轉、雙指縮放，也可使用方向鍵控制`,
-        };
-        Object.entries(attributes).forEach(([key, value]) =>
-          element!.setAttribute(key, value),
-        );
-        element.addEventListener("load", loaded);
-        element.addEventListener("error", failed);
-        element.addEventListener("progress", onProgress);
-        const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (reduced) element.interpolationDecay = 0;
-        model.current = element;
-        host.current.replaceChildren(element);
-        element.src = assetUrl(exhibit.model);
-      })
-      .catch(failed);
+    if (mode === "toon" && viewpoint.current && initialViewpoint.current) {
+      import("./toonViewer")
+        .then(({ createToonViewer }) => {
+          if (!active || settled || !host.current) return;
+          toon.current = createToonViewer({
+            host: host.current,
+            src: assetUrl(exhibit.model),
+            alt: exhibit.alt,
+            viewpoint: viewpoint.current!,
+            initialViewpoint: initialViewpoint.current!,
+            onLoad: loaded,
+            onError: failed,
+            onProgress: (totalProgress) =>
+              onProgress(
+                new CustomEvent("progress", { detail: { totalProgress } }),
+              ),
+          });
+        })
+        .catch(failed);
+    } else
+      import("@google/model-viewer")
+        .then(({ ModelViewerElement }) => {
+          if (!active || settled || !host.current) return;
+          ModelViewerElement.dracoDecoderLocation = assetUrl("decoders/draco/");
+          ModelViewerElement.ktx2TranscoderLocation =
+            assetUrl("decoders/basis/");
+          ModelViewerElement.meshoptDecoderLocation = assetUrl(
+            "decoders/meshopt_decoder.js",
+          );
+          ModelViewerElement.modelCacheSize = 0;
+          element = document.createElement(
+            "model-viewer",
+          ) as ModelViewerElement;
+          const attributes = {
+            alt: exhibit.alt,
+            "camera-controls": "",
+            "touch-action": "pan-y",
+            "interaction-prompt": "none",
+            "camera-orbit": exhibit.cameraOrbit || "25deg 75deg 105%",
+            "camera-target": exhibit.cameraTarget || "auto auto auto",
+            "field-of-view": exhibit.fieldOfView || "30deg",
+            "shadow-intensity": "0.8",
+            "shadow-softness": "1",
+            exposure: "1",
+            "environment-image": "neutral",
+            "tone-mapping": "aces",
+            loading: "eager",
+            "aria-label": `${exhibit.title}：拖曳旋轉、雙指縮放，也可使用方向鍵控制`,
+          };
+          Object.entries(attributes).forEach(([key, value]) =>
+            element!.setAttribute(key, value),
+          );
+          if (viewpoint.current) {
+            const view = viewpoint.current;
+            element.cameraOrbit = `${view.theta}rad ${view.phi}rad ${view.radius}m`;
+            element.cameraTarget = `${view.target.x}m ${view.target.y}m ${view.target.z}m`;
+            element.fieldOfView = `${view.fov}deg`;
+          }
+          element.addEventListener("load", loaded);
+          element.addEventListener("error", failed);
+          element.addEventListener("progress", onProgress);
+          const reduced = matchMedia(
+            "(prefers-reduced-motion: reduce)",
+          ).matches;
+          if (reduced) element.interpolationDecay = 0;
+          model.current = element;
+          host.current.replaceChildren(element);
+          element.src = assetUrl(exhibit.model);
+        })
+        .catch(failed);
     return () => {
       active = false;
       clearTimeout(timer);
@@ -124,8 +178,10 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
         element.remove();
       }
       model.current = null;
+      toon.current?.dispose();
+      toon.current = null;
     };
-  }, [exhibit, attempt]);
+  }, [exhibit, attempt, mode]);
 
   useEffect(() => {
     const changed = () =>
@@ -156,7 +212,7 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
       if (e.key === "Tab" && !shareDialog.current?.open) {
         const focusable = Array.from(
           stage.current?.querySelectorAll<HTMLElement>(
-            "button:not(:disabled), a[href], model-viewer",
+            "button:not(:disabled), a[href], model-viewer, canvas[tabindex]",
           ) || [],
         );
         const first = focusable[0],
@@ -185,7 +241,28 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
     const timeout = setTimeout(() => setNotice(""), 3500);
     return () => clearTimeout(timeout);
   }, [notice]);
+  const switchMode = (next: "original" | "toon") => {
+    if (next === mode) return;
+    if (status === "ready") {
+      if (mode === "original" && model.current) {
+        const el = model.current;
+        const orbit = el.getCameraOrbit();
+        viewpoint.current = {
+          ...orbit,
+          theta: orbit.theta - el.turntableRotation,
+          target: el.getCameraTarget(),
+          fov: el.getFieldOfView(),
+        };
+      } else if (toon.current) viewpoint.current = toon.current.getViewpoint();
+    }
+    setMode(next);
+  };
   const reset = () => {
+    if (toon.current) {
+      toon.current.reset();
+      setRotating(false);
+      return;
+    }
     const el = model.current;
     if (!el) return;
     el.autoRotate = false;
@@ -197,6 +274,11 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
     el.jumpCameraToGoal();
   };
   const toggleRotation = () => {
+    if (toon.current) {
+      toon.current.setRotating(!rotating);
+      setRotating(!rotating);
+      return;
+    }
     if (model.current) {
       model.current.autoRotate = !rotating;
       setRotating(!rotating);
@@ -244,6 +326,24 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
           <img src={assetUrl(exhibit.poster)} alt={exhibit.alt} />
         </div>
       ) : null}
+      <div className="viewer-modes glass" role="group" aria-label="展示模式">
+        <button
+          aria-pressed={mode === "original"}
+          onClick={() => switchMode("original")}
+        >
+          原始
+        </button>
+        <button
+          aria-pressed={mode === "toon"}
+          disabled={
+            !initialViewpoint.current ||
+            (mode === "original" && status !== "ready")
+          }
+          onClick={() => switchMode("toon")}
+        >
+          Toon
+        </button>
+      </div>
       <span className="stage-caption">
         {exhibit.subtitle}
         <span>INTERACTIVE OBJECT</span>
