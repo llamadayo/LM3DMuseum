@@ -23,7 +23,7 @@ npm run preview
 1. 原始檔放在 `originals/`（已排除版本控制），不要放到 `public/`。
 2. 展示用 GLB 放在 `public/models/`，封面放在 `public/posters/`。
 3. 修改 `src/data/exhibits.json`，移除示範展品，新增自己的項目。ID 用穩定的英文 slug，已發布後盡量不改，以免破壞分享連結。
-4. `npm run build` 會檢查資料、GLB 標頭與容量；預覽確認後提交並推送。
+4. `npm run build` 會檢查展品資料與 GLB 檔案；預覽確認後提交並推送。
 
 ```json
 {
@@ -72,7 +72,7 @@ blender --background --python scripts/render-posters.py
 1. 建立公開 GitHub 儲存庫並推送本專案。
 2. 在 **Settings → Pages → Build and deployment** 選擇 **GitHub Actions**。
 3. 推送到 `main`，或手動執行 **Deploy museum to GitHub Pages**。
-4. Workflow 執行測試、建置、容量檢查，再發布 `dist/`。使用 Pages 回傳的 base path，相容專案站、帳號首頁與自訂網域。
+4. Workflow 執行測試、建置與資產檢查，再發布 `dist/`。使用 Pages 回傳的 base path，相容專案站、帳號首頁與自訂網域。
 
 本機驗證專案子路徑：
 
@@ -82,19 +82,6 @@ BASE_PATH=/LM3DMuseum/ npm run preview
 ```
 
 展品網址為 `https://<帳號>.github.io/LM3DMuseum/#/exhibit/<id>`。Hash 路由重新整理不依賴伺服器 rewrite。
-
-### 已查證限制（2026-09-23）
-
-- Git 一般儲存庫阻擋超過 100 MiB 的檔案，網頁手動上傳上限為 25 MiB。[來源](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github)
-- Pages 發布網站最多 1 GB，每月 100 GB 流量為軟上限。[來源](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)
-- 檢查腳本以 1,000,000,000 bytes 作保守總容量預算；單檔 100 MiB 為本專案可使用一般 Git 的規則，不宣稱為 Pages HTTP 傳輸上限。
-- Git LFS 不是 Pages 的直接大檔託管方案。[來源](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-git-large-file-storage)
-
-## ChatGPT Sites 移植
-
-本專案無後端，可使用 `npm run build` 產生的靜態 `dist/`。將 base path 設為 `/`，透過 Sites 的靜態網站流程註冊及發布。第一版未綁定 Sites 專案，也沒有虛構 project ID。
-
-Sites 官方目前未公開列出靜態模型資產的单檔上限，R2「無固定儲存容量上限」不等於無單檔限制，仍受帳號額度限制。移植前應用實際最大 GLB 驗證上傳、發布、公開存取與載入；不能套用 ChatGPT 對話附件限制。若模型不能隨站部署，改成支援 CORS 的 HTTPS 物件儲存網址。[Sites 文件](https://learn.chatgpt.com/docs/sites)
 
 ## 示範素材與授權
 
