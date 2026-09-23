@@ -17,6 +17,10 @@ vi.mock("@google/model-viewer", () => {
     static dracoDecoderLocation = "";
     static ktx2TranscoderLocation = "";
     static meshoptDecoderLocation = "";
+    turntableRotation = 0;
+    getCameraOrbit = () => ({ theta: 0.4, phi: 1.3, radius: 4 });
+    getCameraTarget = () => ({ x: 0, y: 1, z: 0 });
+    getFieldOfView = () => 30;
     autoRotate = false;
     src = "";
     cameraOrbit = "";
@@ -29,6 +33,30 @@ vi.mock("@google/model-viewer", () => {
   customElements.define("model-viewer", MockViewer);
   return { ModelViewerElement: MockViewer };
 });
+const toonMock = vi.hoisted(() => ({
+  dispose: vi.fn(),
+  reset: vi.fn(),
+  setRotating: vi.fn(),
+  getViewpoint: vi.fn(() => ({
+    theta: 0.8,
+    phi: 1.2,
+    radius: 3,
+    target: { x: 0, y: 1, z: 0 },
+    fov: 30,
+  })),
+  options: null as null | {
+    onLoad(): void;
+    onError(): void;
+    viewpoint: { theta: number };
+  },
+}));
+vi.mock("./toonViewer", () => ({
+  createToonViewer: vi.fn((options) => {
+    toonMock.options = options;
+    options.host.replaceChildren(document.createElement("canvas"));
+    return toonMock;
+  }),
+}));
 beforeEach(() => {
   vi.stubGlobal(
     "matchMedia",
@@ -156,5 +184,59 @@ describe("viewer lifecycle and fallbacks", () => {
     fireEvent.keyDown(document, { key: "Escape" });
     expect(document.querySelector(".model-stage.expanded")).toBeNull();
     expect(document.body.style.overflow).toBe("");
+  });
+});
+
+describe("original / Toon switching", () => {
+  it("transfers the viewpoint, routes controls and releases the inactive renderer", async () => {
+    const { element } = await mounted();
+    expect(
+      (screen.getByRole("button", { name: "Toon" }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    act(() => element.dispatchEvent(new Event("load")));
+    (element as unknown as { turntableRotation: number }).turntableRotation =
+      0.1;
+    fireEvent.click(screen.getByRole("button", { name: "Toon" }));
+    await waitFor(() =>
+      expect(document.querySelector("canvas")).not.toBeNull(),
+    );
+    expect(element.isConnected).toBe(false);
+    expect(toonMock.options!.viewpoint.theta).toBeCloseTo(0.3);
+    act(() => toonMock.options!.onLoad());
+    fireEvent.click(screen.getByRole("button", { name: "開始自動旋轉" }));
+    expect(toonMock.setRotating).toHaveBeenCalledWith(true);
+    fireEvent.click(screen.getByRole("button", { name: "重設視角" }));
+    expect(toonMock.reset).toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "原始" }));
+    await waitFor(() =>
+      expect(document.querySelector("model-viewer")).not.toBeNull(),
+    );
+    expect(toonMock.dispose).toHaveBeenCalled();
+    expect(document.querySelector("canvas")).toBeNull();
+    expect(
+      (
+        document.querySelector("model-viewer") as unknown as {
+          cameraOrbit: string;
+        }
+      ).cameraOrbit,
+    ).toBe("0.8rad 1.2rad 3m");
+  });
+  it("allows returning to original mode after a Toon failure and ignores stale load callbacks", async () => {
+    const { element } = await mounted();
+    act(() => element.dispatchEvent(new Event("load")));
+    fireEvent.click(screen.getByRole("button", { name: "Toon" }));
+    await waitFor(() =>
+      expect(document.querySelector("canvas")).not.toBeNull(),
+    );
+    const previous = toonMock.options!;
+    act(() => previous.onError());
+    expect(screen.getByRole("alert")).not.toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "原始" }));
+    await waitFor(() =>
+      expect(document.querySelector("model-viewer")).not.toBeNull(),
+    );
+    act(() => previous.onLoad());
+    expect(screen.getByRole("progressbar")).not.toBeNull();
   });
 });

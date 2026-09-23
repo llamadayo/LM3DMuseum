@@ -73,6 +73,17 @@ blender --background --python scripts/render-posters.py -- --id astrafixdemo
 - 壓縮需要的解碼器由鎖定版本的 npm 套件在建置時複製到 `public/decoders/`，以同源網址載入。
 - 只有進入單件展品才載入 model-viewer 與 GLB；首頁、目錄只有封面。切换展品會移除舊 viewer，關閉模型記憶體快取。
 
+## 展示模式
+
+展品頁右上角可切換「原始／Toon」。原始模式沿用 model-viewer；首次完成模型載入後，才開放 Toon，並以當前視角啟動延遲載入的 Three.js 渲染器。
+
+- Toon 使用四階 `MeshToonMaterial` 和細描邊，保留底色貼圖與透明設定；金屬、粗糙度等 PBR 外觀不會保留。
+- 兩種模式共用旋轉、重置、全螢幕和分享工具列；切換會停止自動旋轉並保留當前相機視角。
+- Toon 支援拖曳、滾輪、雙指缩放；聚焦畫布後，方向鍵旋轉、加減鍵縮放。
+- 切換會移除前一個 viewer；Toon 釋放控制器、GPU 資源與解碼器。模型可能命中網路快取，但仍需重新解析，因此切換時會短暫顯示封面與載入進度。
+- Toon 靜止時按需重繪，自動旋轉時才連續更新；隱藏分頁暫停繪製，像素比上限為 2。
+- Toon 載入失敗時可以重試或直接返回原始模式。
+
 ## GitHub Pages 部署
 
 1. 建立公開 GitHub 儲存庫並推送本專案。
