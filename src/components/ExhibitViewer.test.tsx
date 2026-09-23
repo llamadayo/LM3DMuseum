@@ -41,6 +41,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -53,6 +54,28 @@ async function mounted() {
   return { ...view, element };
 }
 describe("viewer lifecycle and fallbacks", () => {
+  it("allows a slow download while progress continues, but recovers from a stalled transfer", async () => {
+    vi.useFakeTimers();
+    await act(async () => {
+      render(<ExhibitViewer exhibit={exhibits[0]} />);
+    });
+    const element = document.querySelector("model-viewer")!;
+    expect(element).not.toBeNull();
+    act(() => {
+      vi.advanceTimersByTime(90000);
+      element.dispatchEvent(
+        new CustomEvent("progress", { detail: { totalProgress: 0.4 } }),
+      );
+    });
+    act(() => {
+      vi.advanceTimersByTime(90000);
+    });
+    expect(screen.queryByRole("alert")).toBeNull();
+    act(() => {
+      vi.advanceTimersByTime(30001);
+    });
+    expect(screen.getByRole("alert").textContent).toContain("暫時無法開啟");
+  });
   it("keeps the poster and disabled controls during loading, then reveals the viewer", async () => {
     const { element } = await mounted();
     expect(

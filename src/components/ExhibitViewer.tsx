@@ -31,6 +31,8 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
 
   useEffect(() => {
     let active = true;
+    let settled = false;
+    let lastProgress = 0;
     let element: ModelViewerElement | undefined;
     let timer: ReturnType<typeof setTimeout>;
     setStatus("loading");
@@ -39,7 +41,8 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
     setSlow(false);
     const slowTimer = setTimeout(() => setSlow(true), 20000);
     const loaded = () => {
-      if (active) {
+      if (active && !settled) {
+        settled = true;
         setStatus("ready");
         clearTimeout(timer);
         clearTimeout(slowTimer);
@@ -47,19 +50,24 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
     };
     const failed = () => {
       if (active) {
+        settled = true;
         setStatus("error");
         clearTimeout(timer);
         clearTimeout(slowTimer);
       }
     };
     const onProgress = (event: Event) => {
-      if (active)
-        setProgress(
-          Math.round(
-            (event as CustomEvent<{ totalProgress: number }>).detail
-              .totalProgress * 100,
-          ),
-        );
+      if (!active || settled) return;
+      const value = (event as CustomEvent<{ totalProgress: number }>).detail
+        .totalProgress;
+      setProgress(Math.round(value * 100));
+      // A large model on a slow connection may legitimately take several minutes.
+      // Fail only after two minutes without new progress, not total download time.
+      if (value > lastProgress) {
+        lastProgress = value;
+        clearTimeout(timer);
+        timer = setTimeout(failed, 120000);
+      }
     };
     timer = setTimeout(failed, 120000);
     // Loading this module only on the exhibit route keeps Three.js off the entrance page.
