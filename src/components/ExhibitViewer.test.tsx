@@ -26,6 +26,9 @@ vi.mock("@google/model-viewer", () => {
     cameraOrbit = "";
     cameraTarget = "";
     fieldOfView = "";
+    availableAnimations: string[] = [];
+    currentTime = 0;
+    play = vi.fn();
     pause = vi.fn();
     resetTurntableRotation = vi.fn();
     jumpCameraToGoal = vi.fn();
@@ -34,6 +37,9 @@ vi.mock("@google/model-viewer", () => {
   return { ModelViewerElement: MockViewer };
 });
 const toonMock = vi.hoisted(() => ({
+  getPlayback: vi.fn(() => ({ time: 3.5, playing: false })),
+  setPlaying: vi.fn(),
+  restartAnimation: vi.fn(),
   dispose: vi.fn(),
   reset: vi.fn(),
   setRotating: vi.fn(),
@@ -45,7 +51,8 @@ const toonMock = vi.hoisted(() => ({
     fov: 30,
   })),
   options: null as null | {
-    onLoad(): void;
+    onLoad(hasAnimation?: boolean): void;
+    playback: { time: number; playing: boolean };
     onError(): void;
     viewpoint: { theta: number };
   },
@@ -238,5 +245,53 @@ describe("original / Toon switching", () => {
     );
     act(() => previous.onLoad());
     expect(screen.getByRole("progressbar")).not.toBeNull();
+  });
+});
+
+describe("animation playback", () => {
+  it("hides animation controls for a static model", async () => {
+    const { element } = await mounted();
+    act(() => element.dispatchEvent(new Event("load")));
+    expect(screen.queryByRole("group", { name: "動畫控制" })).toBeNull();
+  });
+  it("plays, pauses, rewinds, and carries playback across both renderers", async () => {
+    const { element } = await mounted();
+    const animated = element as unknown as {
+      availableAnimations: string[];
+      currentTime: number;
+      play: ReturnType<typeof vi.fn>;
+      pause: ReturnType<typeof vi.fn>;
+    };
+    animated.availableAnimations = ["You_Groove"];
+    act(() => element.dispatchEvent(new Event("load")));
+    expect(screen.getByRole("button", { name: "播放動畫" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "播放動畫" }));
+    expect(animated.play).toHaveBeenCalled();
+    animated.currentTime = 2.25;
+    fireEvent.click(screen.getByRole("button", { name: "Toon" }));
+    await waitFor(() =>
+      expect(document.querySelector("canvas")).not.toBeNull(),
+    );
+    expect(toonMock.options!.playback).toEqual({ time: 2.25, playing: true });
+    act(() => toonMock.options!.onLoad(true));
+    fireEvent.click(screen.getByRole("button", { name: "暫停動畫" }));
+    expect(toonMock.setPlaying).toHaveBeenCalledWith(false);
+    fireEvent.click(screen.getByRole("button", { name: "動畫回到開頭" }));
+    expect(toonMock.restartAnimation).toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "原始" }));
+    await waitFor(() =>
+      expect(document.querySelector("model-viewer")).not.toBeNull(),
+    );
+    const restored = document.querySelector("model-viewer")!;
+    Object.assign(restored, { availableAnimations: ["You_Groove"] });
+    act(() => restored.dispatchEvent(new Event("load")));
+    expect((restored as unknown as { currentTime: number }).currentTime).toBe(
+      3.5,
+    );
+    expect(screen.getByRole("button", { name: "播放動畫" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "動畫回到開頭" }));
+    expect((restored as unknown as { currentTime: number }).currentTime).toBe(
+      0,
+    );
   });
 });

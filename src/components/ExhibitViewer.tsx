@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  Play,
+  Pause,
   Maximize,
   Minimize,
   RotateCcw,
@@ -11,10 +13,17 @@ import {
 import type { ModelViewerElement } from "@google/model-viewer";
 import { assetUrl } from "../lib";
 import type { Exhibit } from "../types";
-import type { ToonController, Viewpoint } from "./viewerTypes";
+import type {
+  AnimationPlayback,
+  ToonController,
+  Viewpoint,
+} from "./viewerTypes";
 
 export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
   const [mode, setMode] = useState<"original" | "toon">("original");
+  const playback = useRef<AnimationPlayback>({ time: 0, playing: false });
+  const [hasAnimation, setHasAnimation] = useState(false);
+  const [playing, setPlaying] = useState(false);
   const toon = useRef<ToonController | null>(null);
   const viewpoint = useRef<Viewpoint | null>(null);
   const initialViewpoint = useRef<Viewpoint | null>(null);
@@ -38,6 +47,9 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
   useEffect(() => {
     if (currentExhibit.current !== exhibit) {
       currentExhibit.current = exhibit;
+      playback.current = { time: 0, playing: false };
+      setPlaying(false);
+      setHasAnimation(false);
       viewpoint.current = null;
       initialViewpoint.current = null;
       setMode("original");
@@ -53,7 +65,7 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
     setRotating(false);
     setSlow(false);
     const slowTimer = setTimeout(() => setSlow(true), 20000);
-    const loaded = () => {
+    const loaded = (animated?: boolean | Event) => {
       if (active && !settled) {
         settled = true;
         if (element && !initialViewpoint.current && element.getCameraOrbit) {
@@ -64,6 +76,16 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
             fov: element.getFieldOfView(),
           };
         }
+        const available = element
+          ? !!element.availableAnimations?.length
+          : animated === true;
+        setHasAnimation(available);
+        if (element && available) {
+          element.play();
+          element.currentTime = playback.current.time;
+          if (!playback.current.playing) element.pause();
+        }
+        setPlaying(available && playback.current.playing);
         setStatus("ready");
         clearTimeout(timer);
         clearTimeout(slowTimer);
@@ -104,6 +126,7 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
             alt: exhibit.alt,
             viewpoint: viewpoint.current!,
             initialViewpoint: initialViewpoint.current!,
+            playback: { ...playback.current },
             onLoad: loaded,
             onError: failed,
             onProgress: (totalProgress) =>
@@ -244,6 +267,10 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
   const switchMode = (next: "original" | "toon") => {
     if (next === mode) return;
     if (status === "ready") {
+      if (hasAnimation)
+        playback.current = toon.current
+          ? toon.current.getPlayback()
+          : { time: model.current?.currentTime ?? 0, playing };
       if (mode === "original" && model.current) {
         const el = model.current;
         const orbit = el.getCameraOrbit();
@@ -256,6 +283,19 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
       } else if (toon.current) viewpoint.current = toon.current.getViewpoint();
     }
     setMode(next);
+  };
+  const toggleAnimation = () => {
+    const next = !playing;
+    if (toon.current) toon.current.setPlaying(next);
+    else if (next) model.current?.play();
+    else model.current?.pause();
+    playback.current.playing = next;
+    setPlaying(next);
+  };
+  const restartAnimation = () => {
+    if (toon.current) toon.current.restartAnimation();
+    else if (model.current) model.current.currentTime = 0;
+    playback.current.time = 0;
   };
   const reset = () => {
     if (toon.current) {
@@ -370,6 +410,29 @@ export default function ExhibitViewer({ exhibit }: { exhibit: Exhibit }) {
           <a href="#/collection">返回展品目錄</a>
         </div>
       ) : null}
+      {hasAnimation && (
+        <div
+          className="animation-controls glass"
+          role="group"
+          aria-label="動畫控制"
+        >
+          <button
+            onClick={toggleAnimation}
+            disabled={status !== "ready"}
+            aria-label={playing ? "暫停動畫" : "播放動畫"}
+          >
+            {playing ? <Pause size={16} /> : <Play size={16} />}
+            {playing ? "暫停動畫" : "播放動畫"}
+          </button>
+          <button
+            onClick={restartAnimation}
+            disabled={status !== "ready"}
+            aria-label="動畫回到開頭"
+          >
+            從頭
+          </button>
+        </div>
+      )}
       <div className="viewer-toolbar glass" aria-label="模型控制">
         <button
           onClick={toggleRotation}

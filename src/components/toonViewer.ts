@@ -6,7 +6,11 @@ import { KTX2Loader } from "three/addons/loaders/KTX2Loader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { OutlineEffect } from "three/addons/effects/OutlineEffect.js";
 import { assetUrl } from "../lib";
-import type { ToonController, Viewpoint } from "./viewerTypes";
+import type {
+  AnimationPlayback,
+  ToonController,
+  Viewpoint,
+} from "./viewerTypes";
 
 export function createToonViewer(options: {
   host: HTMLElement;
@@ -14,7 +18,8 @@ export function createToonViewer(options: {
   alt: string;
   viewpoint: Viewpoint;
   initialViewpoint: Viewpoint;
-  onLoad(): void;
+  playback: AnimationPlayback;
+  onLoad(hasAnimation: boolean): void;
   onProgress(value: number): void;
   onError(): void;
 }): ToonController {
@@ -66,6 +71,9 @@ export function createToonViewer(options: {
   let ready = false;
   let frame = 0;
   let lastTime = 0;
+  let mixer: THREE.AnimationMixer | undefined;
+  let action: THREE.AnimationAction | undefined;
+  let playing = options.playback.playing;
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
   const textures = new Set<THREE.Texture>();
@@ -103,10 +111,12 @@ export function createToonViewer(options: {
   function draw(time: number) {
     frame = 0;
     if (disposed || document.hidden) return;
-    controls.update(lastTime ? Math.min((time - lastTime) / 1000, 0.1) : 0);
+    const delta = lastTime ? Math.min((time - lastTime) / 1000, 0.1) : 0;
+    controls.update(delta);
+    if (playing) mixer?.update(delta);
     lastTime = time;
     if (ready) effect.render(scene, camera);
-    if (controls.autoRotate) invalidate();
+    if (controls.autoRotate || (playing && action)) invalidate();
   }
   function applyViewpoint(view: Viewpoint) {
     camera.fov = view.fov;
@@ -223,8 +233,21 @@ export function createToonViewer(options: {
             : convert(object.material);
         });
         scene.add(gltf.scene);
+        if (gltf.animations.length) {
+          mixer = new THREE.AnimationMixer(gltf.scene);
+          action = mixer.clipAction(gltf.animations[0]);
+          action.play();
+          action.time =
+            options.playback.time %
+            Math.max(gltf.animations[0].duration, 0.001);
+          mixer.update(0);
+          gltf.scene.traverse((object) => {
+            if (object instanceof THREE.SkinnedMesh)
+              object.frustumCulled = false;
+          });
+        }
         ready = true;
-        options.onLoad();
+        options.onLoad(!!action);
         invalidate();
       } catch {
         options.onError();
@@ -240,6 +263,19 @@ export function createToonViewer(options: {
   );
   return {
     getViewpoint,
+    getPlayback: () => ({ time: action?.time ?? 0, playing }),
+    setPlaying(value) {
+      playing = value;
+      lastTime = 0;
+      invalidate();
+    },
+    restartAnimation() {
+      if (!action || !mixer) return;
+      action.reset().play();
+      mixer.update(0);
+      lastTime = 0;
+      invalidate();
+    },
     reset() {
       controls.autoRotate = false;
       applyViewpoint(options.initialViewpoint);
@@ -260,6 +296,8 @@ export function createToonViewer(options: {
       controls.dispose();
       draco.dispose();
       ktx.dispose();
+      mixer?.stopAllAction();
+      if (mixer) mixer.uncacheRoot(mixer.getRoot());
       scene.clear();
       releaseModel();
       ramp.dispose();

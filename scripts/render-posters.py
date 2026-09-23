@@ -23,8 +23,26 @@ for item in exhibits:
         continue
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.import_scene.gltf(filepath=str(root / 'public' / item['model']))
-    meshes = [o for o in bpy.context.scene.objects if o.type == 'MESH']
-    points = [o.matrix_world @ Vector(corner) for o in meshes for corner in o.bound_box]
+    bpy.context.view_layer.update()
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    # Freeze the evaluated pose for this still image before normalizing its size.
+    # Otherwise an active armature can change the bounds during rendering.
+    imported = list(bpy.context.scene.objects)
+    meshes = []
+    for obj in imported:
+        if obj.type != 'MESH' or obj.hide_render or not obj.visible_get():
+            continue
+        evaluated = obj.evaluated_get(depsgraph)
+        mesh = bpy.data.meshes.new_from_object(evaluated, depsgraph=depsgraph)
+        snapshot = bpy.data.objects.new(obj.name + ' poster snapshot', mesh)
+        snapshot.matrix_world = evaluated.matrix_world.copy()
+        meshes.append(snapshot)
+    for obj in imported:
+        bpy.data.objects.remove(obj, do_unlink=True)
+    for obj in meshes:
+        bpy.context.collection.objects.link(obj)
+    bpy.context.view_layer.update()
+    points = [o.matrix_world @ vertex.co for o in meshes for vertex in o.data.vertices]
     minimum = Vector([min(v[i] for v in points) for i in range(3)])
     maximum = Vector([max(v[i] for v in points) for i in range(3)])
     center = (minimum + maximum) / 2
